@@ -118,6 +118,7 @@ p {
   align-items: center;
   justify-content: space-between;
   height: 72px;
+  gap: 10px;
 }
 
 .logo {
@@ -128,6 +129,16 @@ p {
 .nav {
   display: flex;
   gap: 24px;
+}
+
+.nav a {
+  padding: 5px 15px;
+  cursor: pointer;
+}
+
+.nav a:hover {
+  background-color: orange;
+  border-radius: 10px;
 }
 
 .phone {
@@ -404,6 +415,9 @@ p {
 
 .carousel__track {
   display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
   transition: transform 0.4s ease-in-out;
   gap: 16px;
 }
@@ -434,7 +448,7 @@ p {
   cursor: pointer;
   z-index: 5;
   border-radius: 4px;
-  transition: background 0.3s;
+  /* transition: background 0.3s; */
 }
 
 .carousel__btn:hover {
@@ -447,6 +461,10 @@ p {
 
 .carousel__btn--next {
   right: 8px;
+}
+
+.carousel__track::-webkit-scrollbar {
+  display: none; /* Chrome / Safari */
 }
 
 /* =====================
@@ -468,10 +486,15 @@ p {
 }
 
 .lightbox__image {
-  max-width: 90%;
-  max-height: 80%;
-  border-radius: 8px;
+  max-width: 90vw;
+  max-height: 90vh;
   object-fit: contain;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.lightbox__image.fade-out {
+  opacity: 0;
 }
 
 .lightbox__btn {

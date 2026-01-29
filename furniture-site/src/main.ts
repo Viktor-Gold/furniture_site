@@ -1,18 +1,13 @@
 import './style.css'
+
 /**
  * ============================
  * КАРУСЕЛЬ + LIGHTBOX
  * ============================
- * 
- * Что делает этот файл:
- * 1. Управляет прокруткой фото в блоке "Наши работы"
- * 2. Открывает фото на весь экран (lightbox)
- * 3. Позволяет листать фото стрелками
- * 4. Закрывает lightbox по клику вне картинки
  */
 
 // -----------------------------
-// Получаем элементы карусели
+// КАРУСЕЛЬ
 // -----------------------------
 
 const track = document.querySelector('.carousel__track') as HTMLElement
@@ -23,34 +18,66 @@ const items = Array.from(
 const prevBtn = document.querySelector('.carousel__btn--prev') as HTMLButtonElement
 const nextBtn = document.querySelector('.carousel__btn--next') as HTMLButtonElement
 
-// текущий индекс фото
-let currentIndex = 0
-
 /**
- * Обновляет положение карусели
+ * Ширина одного элемента (с учётом gap)
  */
-function updateCarousel() {
-  const width = items[0].clientWidth
-  track.style.transform = `translateX(-${currentIndex * width}px)`
+function getScrollAmount() {
+  return items[0].clientWidth + 16
 }
 
-// -----------------------------
-// Кнопки влево / вправо (карусель)
-// -----------------------------
-
+// кнопки мышью
 nextBtn.addEventListener('click', () => {
-  currentIndex = (currentIndex + 1) % items.length
-  updateCarousel()
+  track.scrollBy({ left: getScrollAmount(), behavior: 'smooth' })
 })
 
 prevBtn.addEventListener('click', () => {
-  currentIndex =
-    (currentIndex - 1 + items.length) % items.length
-  updateCarousel()
+  track.scrollBy({ left: -getScrollAmount(), behavior: 'smooth' })
 })
 
 // -----------------------------
-// LIGHTBOX (развёрнутое фото)
+// СКРОЛЛ ТАЧПАДОМ (wheel)
+// -----------------------------
+
+track.addEventListener('wheel', (e) => {
+  if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
+    track.scrollLeft += e.deltaY
+    e.preventDefault()
+  }
+}, { passive: false })
+
+// -----------------------------
+// СВАЙП НА ТЕЛЕФОНЕ
+// -----------------------------
+
+let touchStartX = 0
+
+track.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX
+})
+
+track.addEventListener('touchmove', (e) => {
+  const touchX = e.touches[0].clientX
+  const delta = touchStartX - touchX
+  track.scrollLeft += delta
+  touchStartX = touchX
+})
+
+/**
+ * Плавная смена изображения (fade)
+ */
+function changeLightboxImage(index: number) {
+  lightboxImage.classList.add('fade-out')
+
+  setTimeout(() => {
+    lightboxImage.src = items[index].src
+    lightboxImage.classList.remove('fade-out')
+  }, 300)
+
+  preloadNeighbors(index)
+}
+
+// -----------------------------
+// LIGHTBOX
 // -----------------------------
 
 const lightbox = document.getElementById('lightbox') as HTMLElement
@@ -69,40 +96,53 @@ const lightboxNext = lightbox.querySelector(
 let lightboxIndex = 0
 
 /**
- * Открывает lightbox с нужным изображением
+ * Предзагрузка одного изображения
  */
+function preloadImage(src: string) {
+  const img = new Image()
+  img.src = src
+}
+
+/**
+ * Предзагрузка соседних изображений
+ * (предыдущее и следующее)
+ */
+function preloadNeighbors(index: number) {
+  const prevIndex = (index - 1 + items.length) % items.length
+  const nextIndex = (index + 1) % items.length
+
+  preloadImage(items[prevIndex].src)
+  preloadImage(items[nextIndex].src)
+}
+
+
 function openLightbox(index: number) {
   lightboxIndex = index
   lightboxImage.src = items[lightboxIndex].src
   lightbox.classList.add('active')
+
+  preloadNeighbors(lightboxIndex)
 }
 
-/**
- * Закрывает lightbox
- */
 function closeLightbox() {
   lightbox.classList.remove('active')
 }
 
-// -----------------------------
-// Клик по фото → открыть
-// -----------------------------
-
+// клик по фото
 items.forEach((img, index) => {
   img.addEventListener('click', () => {
     openLightbox(index)
   })
 })
 
-// -----------------------------
-// Листание в lightbox
-// -----------------------------
-
+// стрелки в lightbox
 lightboxNext.addEventListener('click', (e) => {
   e.stopPropagation()
 
   lightboxIndex = (lightboxIndex + 1) % items.length
-  lightboxImage.src = items[lightboxIndex].src
+  changeLightboxImage(lightboxIndex)
+
+  // preloadNeighbors(lightboxIndex)
 })
 
 lightboxPrev.addEventListener('click', (e) => {
@@ -110,24 +150,34 @@ lightboxPrev.addEventListener('click', (e) => {
 
   lightboxIndex =
     (lightboxIndex - 1 + items.length) % items.length
-  lightboxImage.src = items[lightboxIndex].src
+  changeLightboxImage(lightboxIndex)
+
+  // preloadNeighbors(lightboxIndex)
 })
 
-// -----------------------------
-// Закрытие по клику вне фото
-// -----------------------------
-
-lightbox.addEventListener('click', () => {
-  closeLightbox()
-})
+// закрытие
+lightbox.addEventListener('click', closeLightbox)
 
 // -----------------------------
-// Закрытие по ESC (приятный бонус)
+// КЛАВИАТУРА ← →
 // -----------------------------
 
 document.addEventListener('keydown', (e) => {
+  // если lightbox закрыт — игнорируем клавиатуру
+  if (!lightbox.classList.contains('active')) return
+
   if (e.key === 'Escape') {
     closeLightbox()
   }
-})
 
+  if (e.key === 'ArrowRight') {
+    lightboxIndex = (lightboxIndex + 1) % items.length
+    changeLightboxImage(lightboxIndex)
+  }
+
+  if (e.key === 'ArrowLeft') {
+    lightboxIndex =
+      (lightboxIndex - 1 + items.length) % items.length
+    changeLightboxImage(lightboxIndex)
+  }
+})
