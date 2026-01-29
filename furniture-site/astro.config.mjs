@@ -1,9 +1,6 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  // Полная ссылка на будущий сайт
-  site: 'https://Viktor-Gold.github.io/furniture_site',
-  
-  // Базовый путь (ВАЖНО для GitHub Pages)
-  base: '/furniture-site/',
+  site: 'https://viktor-gold.github.io/furniture_site',
+  base: '/furniture_site/', // <- имя репозитория на GitHub с нижним подчёркиванием
 });
