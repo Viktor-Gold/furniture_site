@@ -134,11 +134,13 @@ p {
 .nav a {
   padding: 5px 15px;
   cursor: pointer;
+  background-color: orange;
+  border-radius: 10px;
+  transition: 0.3s;
 }
 
 .nav a:hover {
-  background-color: orange;
-  border-radius: 10px;
+  background-color: orangered;
 }
 
 .phone {
@@ -147,6 +149,11 @@ p {
   color: white;
   font-weight: 600;
   background-color: #de7518;
+  transition: 0.3s;
+}
+
+.phone:hover {
+  background-color: orangered;
 }
 
 /* =====================
